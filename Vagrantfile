@@ -14,6 +14,7 @@ Vagrant.configure(2) do |config|
   # Set up network port forwarding
   config.vm.network "forwarded_port", guest: 5000, host: 5000, host_ip: "127.0.0.1"
   config.vm.network "forwarded_port", guest: 8080, host: 8080, host_ip: "127.0.0.1"
+  config.vm.network "forwarded_port", guest: 50000, host: 50000, host_ip: "127.0.0.1"
   config.vm.network "private_network", ip: "192.168.33.10"
 
   # Windows users need to change the permissions explicitly so that Windows doesn't
@@ -67,23 +68,6 @@ Vagrant.configure(2) do |config|
     mv $PHANTOM_JS /usr/local/share
     ln -sf /usr/local/share/$PHANTOM_JS/bin/phantomjs /usr/local/bin
     rm -f $PHANTOM_JS.tar.bz2
-    echo "\n----- Installing Bluemix CLI Environment ------\n"
-    # Install the Bluemix CLI
-    cd ~
-    export BLUEMIX_CLI="Bluemix_CLI_0.5.5_amd64"
-    wget http://ftp.icap.cdl.ibm.com/OERuntime/BluemixCLIs/CliProvider/bluemix-cli/$BLUEMIX_CLI.tar.gz
-    tar -xvf $BLUEMIX_CLI.tar.gz
-    cd Bluemix_CLI/
-    sudo ./install_bluemix_cli
-    cd ..
-    rm -fr Bluemix_CLI/
-    rm $BLUEMIX_CLI.tar.gz
-    echo "\n----- Installing Bluemix Plugins ------\n"
-    bx plugin install -r Bluemix dev
-    sudo -H -u ubuntu bash -c 'bluemix plugin install -r Bluemix container-service'
-    sudo -H -u ubuntu bash -c 'bluemix plugin install -r Bluemix container-registry'
-    echo "\n----- The following Bluemix plug-ins are installed ------\n"
-    sudo -H -u ubuntu bash -c 'bluemix plugin list'
     # Make vi look nice
     sudo -H -u ubuntu bash -c "echo 'colorscheme desert' > ~/.vimrc"
     echo "\n----- Installion Complete ------\n"
@@ -104,6 +88,13 @@ Vagrant.configure(2) do |config|
     d.run "redis:alpine",
       args: "--restart=always -d --name redis -h redis -p 6379:6379 -v /var/lib/redis/data:/data"
   end
+
+  # Add Jenkins docker container
+  config.vm.provision "docker" do |d|
+    d.pull_images "jenkins/jenkins:lts"
+    d.run "jenkins/jenkins:lts",
+      args: "--name jenkins -u root -p 8080:8080 -p 50000:50000 -v /vagrant/jenkins_home:/var/jenkins_home"
+  end  
 
   # # Add Tomcat docker container
   # config.vm.provision "docker" do |d|
