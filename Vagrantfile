@@ -99,12 +99,12 @@ Vagrant.configure(2) do |config|
       args: "--name jenkins -u root -p 8080:8080 -p 50000:50000 -v /vagrant/jenkins_home:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock -v $(which docker):/usr/bin/docker -v /usr/lib/x86_64-linux-gnu/libltdl.so.7:/usr/lib/libltdl.so.7"
   end  
 
-  # Add ZAP container
-  config.vm.provision "docker" do |d|
-    d.pull_images "owasp/zap2docker-stable"
-    d.run "owasp/zap2docker-stable zap.sh -daemon -host 0.0.0.0 -port 8080",
-      args: "--name jenkins -u zap -p 8000:8080"
-  end  
+  # # Add ZAP container
+  # config.vm.provision "docker" do |d|
+  #   d.pull_images "owasp/zap2docker-stable"
+  #   d.run "owasp/zap2docker-stable zap.sh -daemon -host 0.0.0.0 -port 8080",
+  #     args: "--name jenkins -u zap -p 8000:8080"
+  # end  
 
   # # Add Tomcat docker container
   # config.vm.provision "docker" do |d|
