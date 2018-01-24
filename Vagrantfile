@@ -53,9 +53,7 @@ Vagrant.configure(2) do |config|
     # Add Java 8
   config.vm.provision :shell, inline: <<-SHELL
     echo "\n----- Installing Java 8 Development Environment ------\n"
-    apt-get update
     add-apt-repository ppa:openjdk-r/ppa -y
-    apt-get update
     apt-get -y install openjdk-8-jdk ant maven
     update-alternatives --config java
     sudo -H -u ubuntu bash -c "echo 'colorscheme desert' > ~/.vimrc"
