@@ -51,14 +51,6 @@ Vagrant.configure(2) do |config|
     # # Install the IBM Container plugin as ubuntu
     # sudo -H -u ubuntu bash -c "echo Y | cf install-plugin https://static-ice.ng.bluemix.net/ibm-containers-linux_x64"
     # Add Java 8
-  config.vm.provision :shell, inline: <<-SHELL
-    echo "\n----- Installing Java 8 Development Environment ------\n"
-    add-apt-repository ppa:openjdk-r/ppa -y
-    apt-get -y install openjdk-8-jdk ant maven
-    update-alternatives --config java
-    sudo -H -u ubuntu bash -c "echo 'colorscheme desert' > ~/.vimrc"
-    echo "\n----- Installion Complete ------\n"
-  SHELL
     # # Install PhantomJS for Selenium browser support
     # echo "\n----- Installing PhantomJS Testing Environment ------\n"
     # apt-get install -y chrpath libssl-dev libxft-dev
