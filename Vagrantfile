@@ -38,62 +38,72 @@ Vagrant.configure(2) do |config|
   ######################################################################
   # Setup a Development environment for Python, Java, and Cloud Foundry
   ######################################################################
-  config.vm.provision :shell, inline: <<-SHELL
-    wget -q -O - https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | sudo apt-key add -
-    echo "deb http://packages.cloudfoundry.org/debian stable main" | sudo tee /etc/apt/sources.list.d/cloudfoundry-cli.list
-    apt-get update
-    # Install Python and Cloud Foundry API
-    echo "\n----- Installing Python / Cloud Foundry Development Environment ------\n"
-    apt-get install -y git zip tree python-pip python-dev build-essential cf-cli
-    pip install --upgrade pip
-    pip install virtualenv
-    sudo -H -u ubuntu bash -c "alias a=\'. venv/bin/activate\' >> ~/.bashrc"
-    # Install the IBM Container plugin as ubuntu
-    sudo -H -u ubuntu bash -c "echo Y | cf install-plugin https://static-ice.ng.bluemix.net/ibm-containers-linux_x64"
+  
+    # wget -q -O - https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | sudo apt-key add -
+    # echo "deb http://packages.cloudfoundry.org/debian stable main" | sudo tee /etc/apt/sources.list.d/cloudfoundry-cli.list
+    # apt-get update
+    # # Install Python and Cloud Foundry API
+    # echo "\n----- Installing Python / Cloud Foundry Development Environment ------\n"
+    # apt-get install -y git zip tree python-pip python-dev build-essential cf-cli
+    # pip install --upgrade pip
+    # pip install virtualenv
+    # sudo -H -u ubuntu bash -c "alias a=\'. venv/bin/activate\' >> ~/.bashrc"
+    # # Install the IBM Container plugin as ubuntu
+    # sudo -H -u ubuntu bash -c "echo Y | cf install-plugin https://static-ice.ng.bluemix.net/ibm-containers-linux_x64"
     # Add Java 8
+  config.vm.provision :shell, inline: <<-SHELL
     echo "\n----- Installing Java 8 Development Environment ------\n"
+    apt-get update
     add-apt-repository ppa:openjdk-r/ppa -y
     apt-get update
     apt-get -y install openjdk-8-jdk ant maven
     update-alternatives --config java
-    # Install PhantomJS for Selenium browser support
-    echo "\n----- Installing PhantomJS Testing Environment ------\n"
-    apt-get install -y chrpath libssl-dev libxft-dev
-    apt-get -y autoremove
-    # from PhantomJS https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-2.1.1-linux-x86_64.tar.bz2
-    cd ~
-    export PHANTOM_JS="phantomjs-2.1.1-linux-x86_64"
-    wget https://bitbucket.org/ariya/phantomjs/downloads/$PHANTOM_JS.tar.bz2
-    tar xvjf $PHANTOM_JS.tar.bz2
-    mv $PHANTOM_JS /usr/local/share
-    ln -sf /usr/local/share/$PHANTOM_JS/bin/phantomjs /usr/local/bin
-    rm -f $PHANTOM_JS.tar.bz2
-    # Make vi look nice
     sudo -H -u ubuntu bash -c "echo 'colorscheme desert' > ~/.vimrc"
     echo "\n----- Installion Complete ------\n"
   SHELL
+    # # Install PhantomJS for Selenium browser support
+    # echo "\n----- Installing PhantomJS Testing Environment ------\n"
+    # apt-get install -y chrpath libssl-dev libxft-dev
+    # apt-get -y autoremove
+    # # from PhantomJS https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-2.1.1-linux-x86_64.tar.bz2
+    # cd ~
+    # export PHANTOM_JS="phantomjs-2.1.1-linux-x86_64"
+    # wget https://bitbucket.org/ariya/phantomjs/downloads/$PHANTOM_JS.tar.bz2
+    # tar xvjf $PHANTOM_JS.tar.bz2
+    # mv $PHANTOM_JS /usr/local/share
+    # ln -sf /usr/local/share/$PHANTOM_JS/bin/phantomjs /usr/local/bin
+    # rm -f $PHANTOM_JS.tar.bz2
+    # Make vi look nice
+  
 
   ######################################################################
   # Add Redis docker container
   ######################################################################
-  config.vm.provision "shell", inline: <<-SHELL
-    # Prepare Redis data share
-    sudo mkdir -p /var/lib/redis/data
-    sudo chown ubuntu:ubuntu /var/lib/redis/data
-  SHELL
+  # config.vm.provision "shell", inline: <<-SHELL
+  #   # Prepare Redis data share
+  #   sudo mkdir -p /var/lib/redis/data
+  #   sudo chown ubuntu:ubuntu /var/lib/redis/data
+  # SHELL
 
-  # Add Redis docker container
-  config.vm.provision "docker" do |d|
-    d.pull_images "redis:alpine"
-    d.run "redis:alpine",
-      args: "--restart=always -d --name redis -h redis -p 6379:6379 -v /var/lib/redis/data:/data"
-  end
+  # # Add Redis docker container
+  # config.vm.provision "docker" do |d|
+  #   d.pull_images "redis:alpine"
+  #   d.run "redis:alpine",
+  #     args: "--restart=always -d --name redis -h redis -p 6379:6379 -v /var/lib/redis/data:/data"
+  # end
 
   # Add Jenkins docker container
   config.vm.provision "docker" do |d|
     d.pull_images "jenkins/jenkins:lts"
     d.run "jenkins/jenkins:lts",
-      args: "--name jenkins -u root -p 8080:8080 -p 50000:50000 -v /vagrant/jenkins_home:/var/jenkins_home"
+      args: "--name jenkins -u root -p 8080:8080 -p 50000:50000 -v /vagrant/jenkins_home:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock -v $(which docker):/usr/bin/docker -v /usr/lib/x86_64-linux-gnu/libltdl.so.7:/usr/lib/libltdl.so.7"
+  end  
+
+  # Add ZAP container
+  config.vm.provision "docker" do |d|
+    d.pull_images "owasp/zap2docker-stable"
+    d.run "owasp/zap2docker-stable zap.sh -daemon -host 0.0.0.0 -port 8080",
+      args: "--name jenkins -u zap -p 8000:8080"
   end  
 
   # # Add Tomcat docker container
